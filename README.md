@@ -2,51 +2,79 @@
 
 Static site that detects the visitor's country and renders cards from Google Sheets.
 
-## Configure Google Sheets
+## Setup
 
-Publish the Google Sheet to the web (File -> Share -> Publish to web) so CSV
-export works without an API key.
+1. **Get your Google Sheet URL** (must be published to web: File → Share → Publish to web).
+2. **Edit `.env`** and add your sheet:
+   ```
+   SHEET_URL=https://docs.google.com/spreadsheets/d/<your-sheet-id>/edit?usp=sharing
+   ```
+3. **Generate config**:
+   ```
+   python scripts/build-config.py
+   ```
+4. **Run local server**:
+   ```
+   python -m http.server 5500
+   ```
+5. **Open browser**: http://localhost:5500
 
-Cards tab columns (header row required):
+Hard refresh (Cmd+Shift+R) to see config changes.
 
-- title
-- subtitle
-- country (ISO-2 like US, AE, SE, or ALL)
-- tag
-- link
+## Google Sheet Tabs & Columns (Required)
 
-Hero tab columns:
+**Hero** — rotating banner images
+- Column B: Desktop image URL
+- Column C: Mobile image URL
+- Column D: Active (Y/N)
 
-- Column B: desktop image URL
-- Column C: mobile image URL
-- Column D: active flag (Y to use, N to ignore)
-
-Partners tab columns:
-
+**Partners** — sponsor logos
 - Column A: Name
-- Column B: Desktop Logo
-- Column C: Mobile Logo
-- Column D: Active (Y to show)
+- Column B: Desktop logo URL
+- Column C: Mobile logo URL
+- Column D: Active (Y/N)
 
-Copy .env.example to .env and fill in:
+**Countries** — registration by country
+- Column A: Country name
+- Column B: City count
+- Column C: Date
 
-- SHEET_ID (or SHEET_URL)
-- SHEET_MODE (csv or api)
-- CARDS_TAB, HERO_TAB, COUNTRIES_TAB, VENUES_TAB, COUNTRY_PICS_TAB, TESTIMONIALS_TAB, PARTNERS_TAB
-- HERO_DESKTOP_COL, HERO_MOBILE_COL, HERO_ACTIVE_COL, HERO_ROTATION_MS
-- GEO_ENDPOINT, REGISTER_URL
-- SHEET_API_KEY (only required for api mode)
+**Venues** — event venue details
+- Column A: Country
+- Column B: City
+- Column C: Venue name
+- Column D: Date
 
-Generate app-config.js from .env (single source of truth):
+**Country Pics** — user-submitted photos
+- Column A: Country
+- Column B: Image URL
+- Column C: Active (Y/N)
 
-- ./.venv/bin/python scripts/build-config.py
+**Testimonials** — impact stories
+- Column A: Desktop media URL (image or YouTube link)
+- Column B: Mobile media URL
+- Column C: Quote/story text
+- Column D: Author name
+- Column E: Active (Y/N)
 
-If no configuration is provided, the UI falls back to sample cards.
+## Optional Configuration
 
-## Run locally
+Add these to `.env` if you need to override defaults:
 
-Use any static file server. For example:
+```
+SHEET_API_KEY=              # For Google Sheets API mode (leave blank for CSV)
+HERO_ROTATION_MS=7000       # Milliseconds between hero image rotations
+REGISTER_URL=               # Custom registration form URL
+GEO_ENDPOINT=               # Custom geolocation service endpoint
+HERO_TAB=Hero
+COUNTRIES_TAB=Countries
+VENUES_TAB=Venues
+COUNTRY_PICS_TAB=Country Pics
+TESTIMONIALS_TAB=Testimonials
+PARTNERS_TAB=Partners
+HERO_DESKTOP_COL=2
+HERO_MOBILE_COL=3
+HERO_ACTIVE_COL=4
+```
 
-- python -m http.server 5173
-
-Then open http://localhost:5173.
+Then rebuild: `python scripts/build-config.py`
