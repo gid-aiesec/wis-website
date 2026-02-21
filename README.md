@@ -57,24 +57,5 @@ Hard refresh (Cmd+Shift+R) to see config changes.
 - Column D: Author name
 - Column E: Active (Y/N)
 
-## Optional Configuration
-
-Add these to `.env` if you need to override defaults:
-
-```
-SHEET_API_KEY=              # For Google Sheets API mode (leave blank for CSV)
-HERO_ROTATION_MS=7000       # Milliseconds between hero image rotations
-REGISTER_URL=               # Custom registration form URL
-GEO_ENDPOINT=               # Custom geolocation service endpoint
-HERO_TAB=Hero
-COUNTRIES_TAB=Countries
-VENUES_TAB=Venues
-COUNTRY_PICS_TAB=Country Pics
-TESTIMONIALS_TAB=Testimonials
-PARTNERS_TAB=Partners
-HERO_DESKTOP_COL=2
-HERO_MOBILE_COL=3
-HERO_ACTIVE_COL=4
-```
 
 Then rebuild: `python scripts/build-config.py`
