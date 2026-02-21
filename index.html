@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>H4TF - WIS</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="grain"></div>
+    <nav class="site-nav" aria-label="Primary">
+      <div class="nav-inner">
+        <span class="nav-title">H4TF - Women in Stem</span>
+        <a class="cta-button" href="https://docs.google.com/forms/d/e/1FAIpQLSectYAdjAU05va9eshykh6h8LgGKeG7d-Hm190bpSbz3l7EJQ/viewform" target="_blank" rel="noopener">Register</a>
+      </div>
+    </nav>
+    <main class="hero-stage">
+      <div class="hero-visual" id="hero-visual">
+        <picture>
+          <source id="hero-source" media="(max-width: 720px)" srcset="" />
+          <img id="hero-image" src="" alt="Hero" loading="lazy" />
+        </picture>
+        <div class="hero-overlay">
+          <div class="hero-content">
+            <p class="hero-eyebrow">AIESEC - H4TF</p>
+            <h1>Empowering Women to Lead the Future of STEM</h1>
+            <p class="hero-subhead">
+              A global initiative by AIESEC connecting women in STEM with opportunities for
+              learning, mentorship, and career growth.
+            </p>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <section class="partners-section" id="partners-section" aria-labelledby="partners-title">
+      <div class="registration-header partners-header">
+        <p class="partners-eyebrow">Our Partners</p>
+        <h2 id="partners-title">Powered by organizations advancing women in STEM</h2>
+      </div>
+      <div class="partners-grid" id="partners-grid"></div>
+    </section>
+
+    <section class="registration-section" aria-labelledby="registration-title">
+      <div class="registration-header">
+        <h2 id="registration-title">Registration Details</h2>
+        <p>Click a country to view the details and register.</p>
+      </div>
+      <div class="registration-grid" id="country-grid-primary"></div>
+      <details class="registration-more" id="country-more">
+        <summary>View all countries</summary>
+        <div class="registration-grid" id="country-grid-all"></div>
+      </details>
+    </section>
+
+    <section class="country-pics-section" aria-labelledby="country-pics-title">
+      <div class="registration-header">
+        <h2 id="country-pics-title">Pictures from your country</h2>
+        <p>Scenes and moments shared by participants in your region.</p>
+      </div>
+      <div class="country-pics-grid" id="country-pics-grid"></div>
+    </section>
+
+    <section class="testimonials-section" id="testimonials-section" aria-labelledby="testimonials-title">
+      <div class="registration-header">
+        <h2 id="testimonials-title">Impact Stories</h2>
+        <p>Snapshots of the voices and places shaping the movement.</p>
+      </div>
+      <div class="testimonial-carousel" aria-label="Testimonials carousel">
+        <div class="testimonial-track" id="testimonial-track"></div>
+        <button class="carousel-arrow carousel-arrow-prev" type="button" data-carousel-prev aria-label="Previous">
+          ‹
+        </button>
+        <button class="carousel-arrow carousel-arrow-next" type="button" data-carousel-next aria-label="Next">
+          ›
+        </button>
+      </div>
+      <div class="carousel-dots" id="testimonial-dots" role="tablist" aria-label="Testimonial pages"></div>
+    </section>
+
+    <footer class="site-footer" aria-labelledby="footer-title">
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <h2 id="footer-title">Heading for the Future — Women in STEM</h2>
+        </div>
+        <div class="footer-grid">
+          <div class="footer-column">
+            <h3>Social</h3>
+            <ul class="footer-links">
+              <li><a href="https://www.instagram.com" target="_blank" rel="noopener">Instagram</a></li>
+              <li><a href="https://www.linkedin.com" target="_blank" rel="noopener">LinkedIn</a></li>
+              <li>
+                <a href="https://chat.whatsapp.com/Im6q5WJyey792EPf4Avzl5?mode=hqrt3" target="_blank" rel="noopener">
+                  Join Women in STEM WhatsApp community
+                </a>
+              </li>
+            </ul>
+          </div>
+          <div class="footer-column">
+            <h3>Contact info</h3>
+            <div class="footer-contact">
+              <p class="footer-role">Global manager</p>
+              <p class="footer-name">Mercy Jacob</p>
+              <p>
+                Email:
+                <a href="mailto:mercyj@ai.aiesec.org">mercyj@ai.aiesec.org</a>
+              </p>
+              <p>
+                LinkedIn:
+                <a href="https://linkedin.com/in/mercy-mayowa-jacob" target="_blank" rel="noopener">
+                  linkedin.com/in/mercy-mayowa-jacob
+                </a>
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="footer-brand">
+          <p class="footer-meta">© 2026 AIESEC.</p>
+        </div>
+      </div>
+    </footer>
+
+    <div class="venue-modal" id="venue-modal" role="dialog" aria-modal="true" aria-hidden="true">
+      <div class="venue-backdrop" data-close-modal></div>
+      <div class="venue-panel" role="document">
+        <div class="venue-header">
+          <div class="venue-title-row">
+            <h3 id="venue-title">Country</h3>
+            <div class="venue-actions">
+              <a class="cta-button" href="https://docs.google.com/forms/d/e/1FAIpQLSectYAdjAU05va9eshykh6h8LgGKeG7d-Hm190bpSbz3l7EJQ/viewform" target="_blank" rel="noopener">Register</a>
+              <button class="venue-close" type="button" data-close-modal aria-label="Close">
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+        <ul class="venue-list" id="venue-list"></ul>
+      </div>
+    </div>
+
+    <script src="app-config.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
