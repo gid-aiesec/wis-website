@@ -31,6 +31,7 @@ const GEO_CONFIG = {
   endpoint: runtimeConfig.geoEndpoint || "https://ipapi.co/json/",
 };
 const REGISTER_URL =
+  runtimeConfig.registerUrl ||
   "https://docs.google.com/forms/d/e/1FAIpQLSectYAdjAU05va9eshykh6h8LgGKeG7d-Hm190bpSbz3l7EJQ/viewform";
 const heroVisualEl = document.getElementById("hero-visual");
 const heroImageEl = document.getElementById("hero-image");
@@ -51,8 +52,18 @@ const venueModalEl = document.getElementById("venue-modal");
 const venueTitleEl = document.getElementById("venue-title");
 const venueListEl = document.getElementById("venue-list");
 const venueCloseEls = document.querySelectorAll("[data-close-modal]");
+const registerLinkEls = document.querySelectorAll("[data-register-link]");
 let venueEntries = [];
 let testimonialAutoTimer = null;
+
+function applyRegisterLinks() {
+  if (!REGISTER_URL || !registerLinkEls.length) {
+    return;
+  }
+  for (const link of registerLinkEls) {
+    link.href = REGISTER_URL;
+  }
+}
 
 async function fetchHeroContent() {
   const { sheetId, sheetMode } = SHEET_CONFIG;
@@ -1115,6 +1126,7 @@ function setupVenueModal() {
 
 async function init() {
   console.log("Initializing...");
+  applyRegisterLinks();
   const heroes = await fetchHeroContent();
   console.log("Fetched heroes:", heroes);
   startHeroRotation(heroes);

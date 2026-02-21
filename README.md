@@ -32,11 +32,12 @@ Copy .env.example to .env and fill in:
 
 - SHEET_ID (or SHEET_URL)
 - SHEET_MODE (csv or api)
-- CARDS_TAB, HERO_TAB, PARTNERS_TAB
-- HERO_DESKTOP_COL, HERO_MOBILE_COL, HERO_ACTIVE_COL
+- CARDS_TAB, HERO_TAB, COUNTRIES_TAB, VENUES_TAB, COUNTRY_PICS_TAB, TESTIMONIALS_TAB, PARTNERS_TAB
+- HERO_DESKTOP_COL, HERO_MOBILE_COL, HERO_ACTIVE_COL, HERO_ROTATION_MS
+- GEO_ENDPOINT, REGISTER_URL
 - SHEET_API_KEY (only required for api mode)
 
-Generate app-config.js:
+Generate app-config.js from .env (single source of truth):
 
 - ./.venv/bin/python scripts/build-config.py
 
