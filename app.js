@@ -381,61 +381,13 @@ async function fetchHeroContent() {
 }
 
 async function fetchLocalHeroContent() {
-  const [desktopFiles, mobileFiles] = await Promise.all([
-    fetchDirectoryImageNames(HERO_IMAGE_DIRS.desktop),
-    fetchDirectoryImageNames(HERO_IMAGE_DIRS.mobile),
-  ]);
+  const res = await fetch("/Images/hero-manifest.json", { cache: "no-store" });
+  const manifest = await res.json();
 
-  const allNames = new Set([...desktopFiles, ...mobileFiles]);
-  const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" });
-
-  return Array.from(allNames)
-    .sort((a, b) => collator.compare(a, b))
-    .map((name) => ({
-      desktop: desktopFiles.includes(name) ? buildLocalImageUrl(HERO_IMAGE_DIRS.desktop, name) : "",
-      mobile: mobileFiles.includes(name) ? buildLocalImageUrl(HERO_IMAGE_DIRS.mobile, name) : "",
-    }))
-    .filter((entry) => entry.desktop || entry.mobile);
-}
-
-async function fetchDirectoryImageNames(directoryPath) {
-  try {
-    const response = await fetch(directoryPath, { cache: "no-store" });
-    if (!response.ok) {
-      return [];
-    }
-
-    const html = await response.text();
-    const hrefMatches = html.matchAll(/href=\"([^\"]+)\"/gi);
-    const names = [];
-
-    for (const match of hrefMatches) {
-      const href = match[1];
-      if (!href || href === "../") {
-        continue;
-      }
-
-      const pathPart = href.split("?")[0];
-      if (!pathPart || pathPart.endsWith("/")) {
-        continue;
-      }
-
-      const fileName = decodeURIComponent(pathPart.split("/").pop() || "").trim();
-      if (!fileName || fileName.startsWith(".")) {
-        continue;
-      }
-
-      if (!/\.(avif|gif|jpe?g|png|webp)$/i.test(fileName)) {
-        continue;
-      }
-
-      names.push(fileName);
-    }
-
-    return Array.from(new Set(names));
-  } catch (error) {
-    return [];
-  }
+  return manifest.desktop.map((name) => ({
+    desktop: `/Images/Hero/Desktop/${name}`,
+    mobile: `/Images/Hero/Mobile/${name}`,
+  }));
 }
 
 function buildLocalImageUrl(directoryPath, fileName) {

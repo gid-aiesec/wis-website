@@ -1,10 +1,55 @@
 from __future__ import annotations
 
 from pathlib import Path
+import json
+import re
 
 ROOT = Path(__file__).resolve().parents[1]
 ENV_PATH = ROOT / ".env"
 OUTPUT_PATH = ROOT / "app-config.js"
+
+HERO_DESKTOP_DIR = ROOT / "images" / "Hero" / "Desktop"
+HERO_MOBILE_DIR = ROOT / "images" / "Hero" / "Mobile"
+HERO_MANIFEST_PATH = ROOT / "images" / "hero-manifest.json"
+
+IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif", ".avif"}
+
+def natural_sort_key(name: str):
+    return [
+        int(part) if part.isdigit() else part.lower()
+        for part in re.split(r"(\d+)", name)
+    ]
+
+def scan_images(folder: Path) -> list[str]:
+    if not folder.exists():
+        return []
+
+    files = []
+    for file in folder.iterdir():
+        if not file.is_file():
+            continue
+        if file.suffix.lower() not in IMAGE_EXTENSIONS:
+            continue
+        files.append(file.name)
+
+    return sorted(files, key=natural_sort_key)
+
+def build_hero_manifest() -> None:
+    desktop_images = scan_images(HERO_DESKTOP_DIR)
+    mobile_images = scan_images(HERO_MOBILE_DIR)
+
+    manifest = {
+        "desktop": desktop_images,
+        "mobile": mobile_images,
+    }
+
+    HERO_MANIFEST_PATH.parent.mkdir(parents=True, exist_ok=True)
+    HERO_MANIFEST_PATH.write_text(
+        json.dumps(manifest, indent=2),
+        encoding="utf-8"
+    )
+
+    print(f"[build] Hero manifest generated with {len(desktop_images)} desktop and {len(mobile_images)} mobile images")
 
 def read_env(path: Path) -> dict[str, str]:
     env: dict[str, str] = {}
@@ -94,6 +139,7 @@ def main() -> None:
         "};\n"
     )
     OUTPUT_PATH.write_text(output, encoding="utf-8")
+    build_hero_manifest()
 
 
 if __name__ == "__main__":
