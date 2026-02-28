@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>H4TF - WIS</title>
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="styles.css?v=20260225-1" />
   </head>
   <body>
     <div class="grain"></div>
@@ -90,17 +90,16 @@
               <li><a href="https://www.instagram.com" target="_blank" rel="noopener">Instagram</a></li>
               <li><a href="https://www.linkedin.com" target="_blank" rel="noopener">LinkedIn</a></li>
               <li>
-                <a href="https://chat.whatsapp.com/Im6q5WJyey792EPf4Avzl5?mode=hqrt3" target="_blank" rel="noopener">
-                  Join Women in STEM WhatsApp community
-                </a>
+                <button class="footer-link-button" type="button" data-newsletter-subscribe>
+                  Subscribe to Newsletter
+                </button>
               </li>
             </ul>
           </div>
           <div class="footer-column">
             <h3>Contact info</h3>
             <div class="footer-contact">
-              <p class="footer-role">Global manager</p>
-              <p class="footer-name">Mercy Jacob</p>
+              <p class="footer-role">Global manager — Mercy Jacob</p>
               <p>
                 Email:
                 <a href="mailto:mercyj@ai.aiesec.org">mercyj@ai.aiesec.org</a>
@@ -138,7 +137,68 @@
       </div>
     </div>
 
+    <div class="newsletter-modal" id="newsletter-modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="newsletter-title">
+      <div class="newsletter-backdrop" data-close-newsletter></div>
+      <div class="newsletter-panel" role="document">
+        <div class="newsletter-header">
+          <h3 id="newsletter-title">Subscribe to our newsletter</h3>
+          <p>Get updates on Women in STEM events, opportunities, and stories.</p>
+        </div>
+        <form class="newsletter-form" id="newsletter-form" novalidate>
+          <label class="newsletter-label" for="newsletter-first-name">First name</label>
+          <input
+            class="newsletter-input"
+            id="newsletter-first-name"
+            name="firstName"
+            type="text"
+            autocomplete="given-name"
+            placeholder="First name"
+            required
+          />
+          <label class="newsletter-label" for="newsletter-last-name">Last name</label>
+          <input
+            class="newsletter-input"
+            id="newsletter-last-name"
+            name="lastName"
+            type="text"
+            autocomplete="family-name"
+            placeholder="Last name"
+            required
+          />
+          <label class="newsletter-label" for="newsletter-country">Country</label>
+          <select class="newsletter-input" id="newsletter-country" name="country" required>
+            <option value="">Select country</option>
+            <option value="Lebanon">Lebanon</option>
+            <option value="Spain">Spain</option>
+          </select>
+          <label class="newsletter-label" for="newsletter-email">Email address</label>
+          <input
+            class="newsletter-input"
+            id="newsletter-email"
+            name="email"
+            type="email"
+            autocomplete="email"
+            placeholder="you@example.com"
+            required
+          />
+          <p class="newsletter-status" id="newsletter-status" aria-live="polite"></p>
+          <div class="newsletter-actions">
+            <button class="cta-button" id="newsletter-submit" type="submit">Subscribe</button>
+            <button class="venue-close" type="button" data-close-newsletter>Close</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="newsletter-success" id="newsletter-success" role="status" aria-live="polite" aria-hidden="true">
+      <div class="newsletter-success-card">
+        <p class="newsletter-success-title">Subscribed successfully</p>
+        <p class="newsletter-success-copy">Thanks for joining the newsletter.</p>
+        <button class="cta-button" type="button" id="newsletter-success-close">Great</button>
+      </div>
+    </div>
+
     <script src="app-config.js"></script>
-    <script src="app.js"></script>
+    <script src="app.js?v=20260228-5"></script>
   </body>
 </html>

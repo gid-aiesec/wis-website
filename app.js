@@ -22,6 +22,7 @@ const SHEET_CONFIG = {
   countryPicsTab: runtimeConfig.countryPicsTab || "Country Pics",
   testimonialsTab: runtimeConfig.testimonialsTab || "Testimonials",
   partnersTab: runtimeConfig.partnersTab || "Partners",
+  newsletterTab: runtimeConfig.newsletterTab || "Newsletter",
   heroDesktopCol: Number.parseInt(runtimeConfig.heroDesktopCol ?? "2", 10),
   heroMobileCol: Number.parseInt(runtimeConfig.heroMobileCol ?? "3", 10),
   heroActiveCol: Number.parseInt(runtimeConfig.heroActiveCol ?? "4", 10),
@@ -33,6 +34,16 @@ const GEO_CONFIG = {
 const REGISTER_URL =
   runtimeConfig.registerUrl ||
   "https://docs.google.com/forms/d/e/1FAIpQLSectYAdjAU05va9eshykh6h8LgGKeG7d-Hm190bpSbz3l7EJQ/viewform";
+const NEWSLETTER_ENDPOINT = runtimeConfig.newsletterEndpoint || "";
+const NEWSLETTER_FORM_URL = runtimeConfig.newsletterFormUrl || "";
+const NEWSLETTER_FORM_FIRST_NAME_FIELD = runtimeConfig.newsletterFormFirstNameField || "";
+const NEWSLETTER_FORM_LAST_NAME_FIELD = runtimeConfig.newsletterFormLastNameField || "";
+const NEWSLETTER_FORM_COUNTRY_FIELD = runtimeConfig.newsletterFormCountryField || "";
+const NEWSLETTER_FORM_EMAIL_FIELD = runtimeConfig.newsletterFormEmailField || "";
+const HERO_IMAGE_DIRS = {
+  desktop: "images/Hero/Desktop/",
+  mobile: "images/Hero/Mobile/",
+};
 const heroVisualEl = document.getElementById("hero-visual");
 const heroImageEl = document.getElementById("hero-image");
 const heroSourceEl = document.getElementById("hero-source");
@@ -51,10 +62,310 @@ const partnersGridEl = document.getElementById("partners-grid");
 const venueModalEl = document.getElementById("venue-modal");
 const venueTitleEl = document.getElementById("venue-title");
 const venueListEl = document.getElementById("venue-list");
+const newsletterButtonEl = document.querySelector("[data-newsletter-subscribe]");
+const newsletterModalEl = document.getElementById("newsletter-modal");
+const newsletterFormEl = document.getElementById("newsletter-form");
+const newsletterFirstNameEl = document.getElementById("newsletter-first-name");
+const newsletterLastNameEl = document.getElementById("newsletter-last-name");
+const newsletterCountryEl = document.getElementById("newsletter-country");
+const newsletterEmailEl = document.getElementById("newsletter-email");
+const newsletterStatusEl = document.getElementById("newsletter-status");
+const newsletterSubmitEl = document.getElementById("newsletter-submit");
+const newsletterCloseEls = document.querySelectorAll("[data-close-newsletter]");
+const newsletterSuccessEl = document.getElementById("newsletter-success");
+const newsletterSuccessCloseEl = document.getElementById("newsletter-success-close");
 const venueCloseEls = document.querySelectorAll("[data-close-modal]");
 const registerLinkEls = document.querySelectorAll("[data-register-link]");
 let venueEntries = [];
 let testimonialAutoTimer = null;
+let newsletterSubmitting = false;
+let newsletterSuccessTimer = null;
+
+function isValidEmail(value) {
+  if (!value) {
+    return false;
+  }
+  const candidate = String(value).trim();
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(candidate);
+}
+
+async function submitNewsletterEmail(firstName, lastName, country, email) {
+  const payload = {
+    firstName,
+    lastName,
+    country,
+    email,
+    tab: SHEET_CONFIG.newsletterTab,
+    submittedAt: new Date().toISOString(),
+  };
+
+  if (NEWSLETTER_ENDPOINT) {
+    const jsonBody = JSON.stringify(payload);
+    const formBody = new URLSearchParams(payload).toString();
+    const attempts = [
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: jsonBody,
+      },
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+        },
+        body: formBody,
+      },
+    ];
+
+    let lastError = new Error("Newsletter signup failed.");
+
+    for (const requestInit of attempts) {
+      try {
+        const response = await fetch(NEWSLETTER_ENDPOINT, requestInit);
+        if (!response.ok) {
+          throw new Error("Newsletter signup failed.");
+        }
+
+        const contentType = response.headers.get("content-type") || "";
+        if (contentType.includes("application/json")) {
+          const result = await response.json();
+          if (result && result.ok === false) {
+            throw new Error(result.error || "Newsletter signup failed.");
+          }
+        }
+
+        return;
+      } catch (error) {
+        lastError = error;
+      }
+    }
+
+    await submitGoogleForm(NEWSLETTER_ENDPOINT, payload);
+    return;
+  }
+
+  if (
+    NEWSLETTER_FORM_URL &&
+    NEWSLETTER_FORM_FIRST_NAME_FIELD &&
+    NEWSLETTER_FORM_LAST_NAME_FIELD &&
+    NEWSLETTER_FORM_COUNTRY_FIELD &&
+    NEWSLETTER_FORM_EMAIL_FIELD
+  ) {
+    const formPayload = {
+      [NEWSLETTER_FORM_FIRST_NAME_FIELD]: firstName,
+      [NEWSLETTER_FORM_LAST_NAME_FIELD]: lastName,
+      [NEWSLETTER_FORM_COUNTRY_FIELD]: country,
+      [NEWSLETTER_FORM_EMAIL_FIELD]: email,
+    };
+
+    await submitGoogleForm(NEWSLETTER_FORM_URL, formPayload);
+    return;
+  }
+
+  throw new Error("Newsletter endpoint is not configured.");
+}
+
+function submitGoogleForm(formUrl, fields) {
+  return new Promise((resolve) => {
+    const frameName = `newsletter-submit-${Date.now()}`;
+    const iframe = document.createElement("iframe");
+    iframe.name = frameName;
+    iframe.style.display = "none";
+
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = formUrl;
+    form.target = frameName;
+    form.style.display = "none";
+
+    for (const [name, value] of Object.entries(fields)) {
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = name;
+      input.value = value;
+      form.appendChild(input);
+    }
+
+    document.body.appendChild(iframe);
+    document.body.appendChild(form);
+    form.submit();
+
+    window.setTimeout(() => {
+      form.remove();
+      iframe.remove();
+      resolve();
+    }, 900);
+  });
+}
+
+function setNewsletterStatus(message, type = "") {
+  if (!newsletterStatusEl) {
+    return;
+  }
+
+  newsletterStatusEl.textContent = message;
+  newsletterStatusEl.classList.remove("is-success", "is-error");
+  if (type) {
+    newsletterStatusEl.classList.add(type);
+  }
+}
+
+function openNewsletterModal() {
+  if (!newsletterModalEl) {
+    return;
+  }
+
+  newsletterModalEl.classList.add("is-open");
+  newsletterModalEl.setAttribute("aria-hidden", "false");
+  setNewsletterStatus("");
+  window.setTimeout(() => {
+    newsletterFirstNameEl?.focus();
+  }, 0);
+}
+
+function closeNewsletterModal() {
+  if (!newsletterModalEl) {
+    return;
+  }
+
+  newsletterModalEl.classList.remove("is-open");
+  newsletterModalEl.setAttribute("aria-hidden", "true");
+}
+
+function showNewsletterSuccessPopup() {
+  if (!newsletterSuccessEl) {
+    return;
+  }
+
+  newsletterSuccessEl.classList.add("is-open");
+  newsletterSuccessEl.setAttribute("aria-hidden", "false");
+
+  if (newsletterSuccessTimer) {
+    window.clearTimeout(newsletterSuccessTimer);
+  }
+
+  newsletterSuccessTimer = window.setTimeout(() => {
+    closeNewsletterSuccessPopup();
+  }, 1800);
+}
+
+function closeNewsletterSuccessPopup() {
+  if (!newsletterSuccessEl) {
+    return;
+  }
+
+  newsletterSuccessEl.classList.remove("is-open");
+  newsletterSuccessEl.setAttribute("aria-hidden", "true");
+}
+
+function setupNewsletterSubscribe() {
+  if (
+    !newsletterButtonEl ||
+    !newsletterModalEl ||
+    !newsletterFormEl ||
+    !newsletterFirstNameEl ||
+    !newsletterLastNameEl ||
+    !newsletterCountryEl ||
+    !newsletterEmailEl
+  ) {
+    return;
+  }
+
+  newsletterButtonEl.addEventListener("click", openNewsletterModal);
+
+  for (const button of newsletterCloseEls) {
+    button.addEventListener("click", closeNewsletterModal);
+  }
+
+  if (newsletterSuccessCloseEl) {
+    newsletterSuccessCloseEl.addEventListener("click", closeNewsletterSuccessPopup);
+  }
+
+  window.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      closeNewsletterModal();
+      closeNewsletterSuccessPopup();
+    }
+  });
+
+  newsletterFormEl.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (newsletterSubmitting) {
+      return;
+    }
+
+    const firstName = newsletterFirstNameEl.value.trim();
+    const lastName = newsletterLastNameEl.value.trim();
+    const country = newsletterCountryEl.value.trim();
+    const email = newsletterEmailEl.value.trim();
+
+    if (!firstName || !lastName) {
+      setNewsletterStatus("Please enter your first and last name.", "is-error");
+      if (!firstName) {
+        newsletterFirstNameEl.focus();
+      } else {
+        newsletterLastNameEl.focus();
+      }
+      return;
+    }
+
+    if (!country) {
+      setNewsletterStatus("Please select your country.", "is-error");
+      newsletterCountryEl.focus();
+      return;
+    }
+
+    if (!isValidEmail(email)) {
+      setNewsletterStatus("Please enter a valid email address.", "is-error");
+      newsletterEmailEl.focus();
+      return;
+    }
+
+    if (
+      !NEWSLETTER_ENDPOINT &&
+      !(
+        NEWSLETTER_FORM_URL &&
+        NEWSLETTER_FORM_FIRST_NAME_FIELD &&
+        NEWSLETTER_FORM_LAST_NAME_FIELD &&
+        NEWSLETTER_FORM_COUNTRY_FIELD &&
+        NEWSLETTER_FORM_EMAIL_FIELD
+      )
+    ) {
+      setNewsletterStatus(
+        "Subscription is not configured yet. Add endpoint or all Google Form field settings.",
+        "is-error"
+      );
+      return;
+    }
+
+    newsletterSubmitting = true;
+    if (newsletterSubmitEl) {
+      newsletterSubmitEl.disabled = true;
+      newsletterSubmitEl.textContent = "Subscribing...";
+    }
+    setNewsletterStatus("Confirming your subscription...");
+
+    try {
+      await submitNewsletterEmail(firstName, lastName, country, email);
+      setNewsletterStatus("Thanks! You are subscribed to the newsletter.", "is-success");
+      showNewsletterSuccessPopup();
+      newsletterFormEl.reset();
+      window.setTimeout(() => {
+        closeNewsletterModal();
+      }, 900);
+    } catch (error) {
+      setNewsletterStatus("Unable to subscribe right now. Please try again later.", "is-error");
+    } finally {
+      newsletterSubmitting = false;
+      if (newsletterSubmitEl) {
+        newsletterSubmitEl.disabled = false;
+        newsletterSubmitEl.textContent = "Subscribe";
+      }
+    }
+  });
+}
 
 function applyRegisterLinks() {
   if (!REGISTER_URL || !registerLinkEls.length) {
@@ -66,16 +377,69 @@ function applyRegisterLinks() {
 }
 
 async function fetchHeroContent() {
-  const { sheetId, sheetMode } = SHEET_CONFIG;
-  if (!sheetId) {
+  return fetchLocalHeroContent();
+}
+
+async function fetchLocalHeroContent() {
+  const [desktopFiles, mobileFiles] = await Promise.all([
+    fetchDirectoryImageNames(HERO_IMAGE_DIRS.desktop),
+    fetchDirectoryImageNames(HERO_IMAGE_DIRS.mobile),
+  ]);
+
+  const allNames = new Set([...desktopFiles, ...mobileFiles]);
+  const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" });
+
+  return Array.from(allNames)
+    .sort((a, b) => collator.compare(a, b))
+    .map((name) => ({
+      desktop: desktopFiles.includes(name) ? buildLocalImageUrl(HERO_IMAGE_DIRS.desktop, name) : "",
+      mobile: mobileFiles.includes(name) ? buildLocalImageUrl(HERO_IMAGE_DIRS.mobile, name) : "",
+    }))
+    .filter((entry) => entry.desktop || entry.mobile);
+}
+
+async function fetchDirectoryImageNames(directoryPath) {
+  try {
+    const response = await fetch(directoryPath, { cache: "no-store" });
+    if (!response.ok) {
+      return [];
+    }
+
+    const html = await response.text();
+    const hrefMatches = html.matchAll(/href=\"([^\"]+)\"/gi);
+    const names = [];
+
+    for (const match of hrefMatches) {
+      const href = match[1];
+      if (!href || href === "../") {
+        continue;
+      }
+
+      const pathPart = href.split("?")[0];
+      if (!pathPart || pathPart.endsWith("/")) {
+        continue;
+      }
+
+      const fileName = decodeURIComponent(pathPart.split("/").pop() || "").trim();
+      if (!fileName || fileName.startsWith(".")) {
+        continue;
+      }
+
+      if (!/\.(avif|gif|jpe?g|png|webp)$/i.test(fileName)) {
+        continue;
+      }
+
+      names.push(fileName);
+    }
+
+    return Array.from(new Set(names));
+  } catch (error) {
     return [];
   }
+}
 
-  if (sheetMode === "api") {
-    return fetchSheetApiContent();
-  }
-
-  return fetchSheetCsvContent();
+function buildLocalImageUrl(directoryPath, fileName) {
+  return `${directoryPath}${encodeURIComponent(fileName)}`;
 }
 
 async function fetchCountriesContent() {
@@ -646,27 +1010,16 @@ function renderHeroImage(hero) {
   const mobile = hero.mobile || hero.desktop;
   const selected = isMobile ? mobile : desktop;
 
-  const cacheBuster = appendCacheBuster(selected);
-
   console.log("Selected image URL:", selected);
 
   if (heroSourceEl) {
-    const sourceUrl = appendCacheBuster(mobile || desktop || "");
-    heroSourceEl.srcset = sourceUrl;
+    heroSourceEl.srcset = mobile || desktop || "";
   }
 
   if (heroImageEl) {
-    heroImageEl.src = cacheBuster;
-    console.log("Set img src to:", cacheBuster);
+    heroImageEl.src = selected;
+    console.log("Set img src to:", selected);
   }
-}
-
-function appendCacheBuster(url) {
-  if (!url) {
-    return "";
-  }
-  const separator = url.includes("?") ? "&" : "?";
-  return `${url}${separator}t=${Date.now()}`;
 }
 
 function startHeroRotation(heroes) {
@@ -745,7 +1098,7 @@ function renderCountryPics(entries, detectedCountry) {
   countryPicsGridEl.innerHTML = "";
 
   if (countryPicsTitleEl) {
-    const safeCountry = detectedCountry || "your country";
+    const safeCountry = detectedCountry || "around the world";
     countryPicsTitleEl.textContent = `Pictures from ${safeCountry}`;
   }
 
@@ -1127,6 +1480,7 @@ function setupVenueModal() {
 async function init() {
   console.log("Initializing...");
   applyRegisterLinks();
+  setupNewsletterSubscribe();
   const heroes = await fetchHeroContent();
   console.log("Fetched heroes:", heroes);
   startHeroRotation(heroes);

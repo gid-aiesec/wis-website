@@ -47,6 +47,7 @@ def main() -> None:
     country_pics_tab = env.get("COUNTRY_PICS_TAB", "Country Pics")
     testimonials_tab = env.get("TESTIMONIALS_TAB", "Testimonials")
     partners_tab = env.get("PARTNERS_TAB", "Partners")
+    newsletter_tab = env.get("NEWSLETTER_TAB", "Newsletter")
     hero_desktop_col = env.get("HERO_DESKTOP_COL", "2")
     hero_mobile_col = env.get("HERO_MOBILE_COL", "3")
     hero_active_col = env.get("HERO_ACTIVE_COL", "4")
@@ -56,6 +57,12 @@ def main() -> None:
         "REGISTER_URL",
         "https://docs.google.com/forms/d/e/1FAIpQLSectYAdjAU05va9eshykh6h8LgGKeG7d-Hm190bpSbz3l7EJQ/viewform",
     )
+    newsletter_endpoint = env.get("NEWSLETTER_ENDPOINT", "")
+    newsletter_form_url = env.get("NEWSLETTER_FORM_URL", "")
+    newsletter_form_first_name_field = env.get("NEWSLETTER_FORM_FIRST_NAME_FIELD", "")
+    newsletter_form_last_name_field = env.get("NEWSLETTER_FORM_LAST_NAME_FIELD", "")
+    newsletter_form_country_field = env.get("NEWSLETTER_FORM_COUNTRY_FIELD", "")
+    newsletter_form_email_field = env.get("NEWSLETTER_FORM_EMAIL_FIELD", "")
 
     output = (
         "window.APP_CONFIG = {\n"
@@ -71,12 +78,19 @@ def main() -> None:
         f"  countryPicsTab: \"{country_pics_tab}\",\n"
         f"  testimonialsTab: \"{testimonials_tab}\",\n"
         f"  partnersTab: \"{partners_tab}\",\n"
+        f"  newsletterTab: \"{newsletter_tab}\",\n"
         f"  heroDesktopCol: \"{hero_desktop_col}\",\n"
         f"  heroMobileCol: \"{hero_mobile_col}\",\n"
         f"  heroActiveCol: \"{hero_active_col}\",\n"
         f"  heroRotationMs: \"{hero_rotation_ms}\",\n"
         f"  geoEndpoint: \"{geo_endpoint}\",\n"
         f"  registerUrl: \"{register_url}\",\n"
+        f"  newsletterEndpoint: \"{newsletter_endpoint}\",\n"
+        f"  newsletterFormUrl: \"{newsletter_form_url}\",\n"
+        f"  newsletterFormFirstNameField: \"{newsletter_form_first_name_field}\",\n"
+        f"  newsletterFormLastNameField: \"{newsletter_form_last_name_field}\",\n"
+        f"  newsletterFormCountryField: \"{newsletter_form_country_field}\",\n"
+        f"  newsletterFormEmailField: \"{newsletter_form_email_field}\",\n"
         "};\n"
     )
     OUTPUT_PATH.write_text(output, encoding="utf-8")

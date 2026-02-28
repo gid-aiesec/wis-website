@@ -24,9 +24,10 @@ Hard refresh (Cmd+Shift+R) to see config changes.
 ## Google Sheet Tabs & Columns (Required)
 
 **Hero** — rotating banner images
-- Column B: Desktop image URL
-- Column C: Mobile image URL
-- Column D: Active (Y/N)
+- Local files from:
+   - `images/Hero/Desktop/`
+   - `images/Hero/Mobile/`
+- Use matching filenames in both folders (example: `1.jpeg`, `2.jpeg`).
 
 **Partners** — sponsor logos
 - Column A: Name
@@ -56,6 +57,32 @@ Hard refresh (Cmd+Shift+R) to see config changes.
 - Column C: Quote/story text
 - Column D: Author name
 - Column E: Active (Y/N)
+
+**Newsletter** — subscriber emails
+- Column A: Email
+- Column B: Submitted timestamp (optional, if your endpoint writes it)
+
+## Newsletter Subscribe Setup
+
+The `Subscribe to Newsletter` button asks for an email and sends it using one of the modes below.
+
+1. In `.env`, keep:
+   - `NEWSLETTER_TAB=Newsletter`
+2. Choose one sending mode:
+
+   **Option A — Apps Script / webhook endpoint**
+   - `NEWSLETTER_ENDPOINT=<your-webhook-or-apps-script-url>`
+
+   **Option B — Google Form direct submit**
+   - `NEWSLETTER_FORM_URL=https://docs.google.com/forms/d/e/<FORM_ID>/formResponse`
+   - `NEWSLETTER_FORM_EMAIL_FIELD=entry.123456789`
+
+   To get `entry.123456789`: open your Google Form, inspect the email input `name` attribute.
+2. Rebuild config:
+   - `python scripts/build-config.py`
+
+`NEWSLETTER_ENDPOINT` should append the incoming email into the `Newsletter` tab in your Google Sheet.
+If using Google Form mode, connect the Form responses to your sheet.
 
 
 Then rebuild: `python scripts/build-config.py`
