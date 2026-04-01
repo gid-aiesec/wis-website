@@ -17,6 +17,7 @@ const SHEET_CONFIG = {
   sheetMode: runtimeConfig.sheetMode || "csv",
   apiKey: runtimeConfig.apiKey || "",
   heroTab: runtimeConfig.heroTab || "Hero",
+  featuredEventsTab: runtimeConfig.featuredEventsTab || "FeaturedEvents",
   countriesTab: runtimeConfig.countriesTab || "Countries",
   venuesTab: runtimeConfig.venuesTab || "Venues",
   countryPicsTab: runtimeConfig.countryPicsTab || "Country Pics",
@@ -47,6 +48,8 @@ const HERO_IMAGE_DIRS = {
 const heroVisualEl = document.getElementById("hero-visual");
 const heroImageEl = document.getElementById("hero-image");
 const heroSourceEl = document.getElementById("hero-source");
+const featuredEventsSectionEl = document.getElementById("events");
+const featuredEventsGridEl = document.getElementById("featured-events-grid");
 const countryPrimaryGridEl = document.getElementById("country-grid-primary");
 const countryAllGridEl = document.getElementById("country-grid-all");
 const countryMoreEl = document.getElementById("country-more");
@@ -59,6 +62,8 @@ const testimonialPrevEl = document.querySelector("[data-carousel-prev]");
 const testimonialNextEl = document.querySelector("[data-carousel-next]");
 const partnersSectionEl = document.getElementById("partners-section");
 const partnersGridEl = document.getElementById("partners-grid");
+const impactSectionEl = document.querySelector(".impact-section");
+const impactValueEls = Array.from(document.querySelectorAll(".impact-value"));
 const venueModalEl = document.getElementById("venue-modal");
 const venueTitleEl = document.getElementById("venue-title");
 const venueListEl = document.getElementById("venue-list");
@@ -76,6 +81,9 @@ const newsletterSuccessEl = document.getElementById("newsletter-success");
 const newsletterSuccessCloseEl = document.getElementById("newsletter-success-close");
 const venueCloseEls = document.querySelectorAll("[data-close-modal]");
 const registerLinkEls = document.querySelectorAll("[data-register-link]");
+const siteNavEl = document.querySelector(".site-nav");
+const navToggleEl = document.querySelector("[data-nav-toggle]");
+const navMenuEl = document.querySelector("[data-nav-menu]");
 let venueEntries = [];
 let testimonialAutoTimer = null;
 let newsletterSubmitting = false;
@@ -376,6 +384,59 @@ function applyRegisterLinks() {
   }
 }
 
+function setupMobileNav() {
+  if (!siteNavEl || !navToggleEl || !navMenuEl) {
+    return;
+  }
+
+  const closeMenu = () => {
+    siteNavEl.classList.remove("is-open");
+    navToggleEl.setAttribute("aria-expanded", "false");
+  };
+
+  const openMenu = () => {
+    siteNavEl.classList.add("is-open");
+    navToggleEl.setAttribute("aria-expanded", "true");
+  };
+
+  navToggleEl.addEventListener("click", () => {
+    const isOpen = siteNavEl.classList.contains("is-open");
+    if (isOpen) {
+      closeMenu();
+      return;
+    }
+    openMenu();
+  });
+
+  for (const link of navMenuEl.querySelectorAll("a")) {
+    link.addEventListener("click", () => {
+      closeMenu();
+    });
+  }
+
+  window.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      closeMenu();
+    }
+  });
+
+  document.addEventListener("click", (event) => {
+    if (!siteNavEl.classList.contains("is-open")) {
+      return;
+    }
+    if (siteNavEl.contains(event.target)) {
+      return;
+    }
+    closeMenu();
+  });
+
+  window.addEventListener("resize", () => {
+    if (window.innerWidth > 720) {
+      closeMenu();
+    }
+  });
+}
+
 async function fetchHeroContent() {
   return fetchLocalHeroContent();
 }
@@ -405,6 +466,19 @@ async function fetchCountriesContent() {
   }
 
   return fetchCountriesCsvContent();
+}
+
+async function fetchFeaturedEventsContent() {
+  const { sheetId, sheetMode } = SHEET_CONFIG;
+  if (!sheetId) {
+    return [];
+  }
+
+  if (sheetMode === "api") {
+    return fetchFeaturedEventsApiContent();
+  }
+
+  return fetchFeaturedEventsCsvContent();
 }
 
 async function fetchVenuesContent() {
@@ -474,6 +548,16 @@ async function fetchCountriesCsvContent() {
   try {
     const rows = await fetchCsvRows(buildCsvUrl(sheetId, countriesTab));
     return parseCountriesValues(rows);
+  } catch (error) {
+    return [];
+  }
+}
+
+async function fetchFeaturedEventsCsvContent() {
+  const { sheetId, featuredEventsTab } = SHEET_CONFIG;
+  try {
+    const rows = await fetchCsvRows(buildCsvUrl(sheetId, featuredEventsTab));
+    return parseFeaturedEventsValues(rows);
   } catch (error) {
     return [];
   }
@@ -565,6 +649,29 @@ async function fetchCountriesApiContent() {
   }
 }
 
+async function fetchFeaturedEventsApiContent() {
+  const { sheetId, apiKey, featuredEventsTab } = SHEET_CONFIG;
+  if (!apiKey) {
+    return [];
+  }
+
+  const range = `${featuredEventsTab}!A:C`;
+  const endpoint = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${encodeURIComponent(
+    range
+  )}?key=${apiKey}`;
+
+  try {
+    const response = await fetch(endpoint, { cache: "no-store" });
+    if (!response.ok) {
+      throw new Error("Sheet fetch failed");
+    }
+    const data = await response.json();
+    return parseFeaturedEventsValues(data.values || []);
+  } catch (error) {
+    return [];
+  }
+}
+
 async function fetchVenuesApiContent() {
   const { sheetId, apiKey, venuesTab } = SHEET_CONFIG;
   if (!apiKey) {
@@ -617,7 +724,7 @@ async function fetchTestimonialsApiContent() {
     return [];
   }
 
-  const range = `${testimonialsTab}!A:E`;
+  const range = `${testimonialsTab}!A:C`;
   const endpoint = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${encodeURIComponent(
     range
   )}?key=${apiKey}`;
@@ -739,7 +846,7 @@ function parseHeroValues(values) {
 
   const heroes = [];
 
-  for (const row of values.slice(1)) {
+  for (const row of values.slice(1, 3)) {
     const active = (row[activeIndex] || "").trim();
     if (!isActiveRow(active)) {
       continue;
@@ -778,6 +885,32 @@ function parseCountriesValues(values) {
       country,
       cityCount,
       date,
+    });
+  }
+
+  return entries;
+}
+
+function parseFeaturedEventsValues(values) {
+  if (!values.length) {
+    return [];
+  }
+
+  const entries = [];
+
+  for (const row of values.slice(1)) {
+    const title = (row[0] || "").trim();
+    const subText = (row[1] || "").trim();
+    const imageUrl = (row[2] || "").trim();
+
+    if (!title && !subText && !imageUrl) {
+      continue;
+    }
+
+    entries.push({
+      title,
+      subText,
+      imageUrl: convertDriveUrl(imageUrl),
     });
   }
 
@@ -845,21 +978,17 @@ function parseTestimonialsValues(values) {
   const entries = [];
 
   for (const row of values.slice(1)) {
-    const desktopUrl = (row[0] || "").trim();
-    const mobileUrl = (row[1] || "").trim();
-    const mainText = (row[2] || "").trim();
-    const subText = (row[3] || "").trim();
-    const active = (row[4] || "").trim();
+    const videoUrl = (row[0] || "").trim();
+    const title = (row[1] || "").trim();
+    const active = (row[2] || "").trim();
 
-    if ((!desktopUrl && !mobileUrl) || !mainText || !isActiveRow(active)) {
+    if (!videoUrl || !isActiveRow(active)) {
       continue;
     }
 
     entries.push({
-      desktopUrl,
-      mobileUrl,
-      mainText,
-      subText,
+      videoUrl,
+      title,
     });
   }
 
@@ -875,53 +1004,126 @@ function parsePartnersValues(values) {
 
   for (const row of values.slice(1)) {
     const name = (row[0] || "").trim();
-    const desktopLogo = (row[1] || "").trim();
-    const mobileLogo = (row[2] || "").trim();
+    const logo = (row[1] || "").trim();
+    const website = (row[2] || "").trim();
     const active = (row[3] || "").trim();
 
-    if (!name || (!desktopLogo && !mobileLogo) || !isActiveRow(active)) {
+    if (!name || !logo || !isActiveRow(active)) {
       continue;
     }
 
     entries.push({
       name,
-      desktopLogo: convertDriveUrl(desktopLogo),
-      mobileLogo: convertDriveUrl(mobileLogo),
+      logoUrl: convertDriveUrl(logo),
+      websiteUrl: normalizeWebsiteUrl(website),
     });
   }
 
   return entries;
 }
 
-async function detectVisitorCountry() {
-  if (!GEO_CONFIG.endpoint) {
+function normalizeWebsiteUrl(url) {
+  const value = String(url || "").trim();
+  if (!value) {
     return "";
+  }
+  if (/^https?:\/\//i.test(value)) {
+    return value;
+  }
+  return `https://${value}`;
+}
+
+async function detectVisitorCountry() {
+  const fallbackEndpoints = ["https://ipwho.is/"];
+  const endpoints = [GEO_CONFIG.endpoint, ...fallbackEndpoints].filter(Boolean);
+
+  for (const endpoint of endpoints) {
+    try {
+      const response = await fetch(endpoint, { cache: "no-store" });
+      if (!response.ok) {
+        continue;
+      }
+      const data = await response.json();
+      const country = pickCountryName(data);
+      if (country) {
+        return country;
+      }
+    } catch (error) {
+      // Try the next provider.
+    }
   }
 
-  try {
-    const response = await fetch(GEO_CONFIG.endpoint, { cache: "no-store" });
-    if (!response.ok) {
-      throw new Error("Geo lookup failed");
-    }
-    const data = await response.json();
-    return pickCountryName(data);
-  } catch (error) {
-    return "";
-  }
+  return "";
 }
 
 function pickCountryName(data) {
   if (!data || typeof data !== "object") {
     return "";
   }
-  return String(data.country_name || data.countryName || data.country || "").trim();
+
+  if (data.success === false) {
+    return "";
+  }
+
+  return String(
+    data.country_name || data.countryName || data.country || data.country_name_en || ""
+  ).trim();
 }
 
 function normalizeCountryName(value) {
   return String(value || "")
     .trim()
     .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
     .replace(/\s+/g, " ");
+}
+
+function toCanonicalCountryName(value) {
+  const normalized = normalizeCountryName(value);
+  const aliases = {
+    lb: "lebanon",
+    "republic of lebanon": "lebanon",
+    "lebanese republic": "lebanon",
+    usa: "united states",
+    us: "united states",
+    uae: "united arab emirates",
+  };
+  return aliases[normalized] || normalized;
+}
+
+function countryKeywords(value) {
+  const canonical = toCanonicalCountryName(value);
+  return canonical
+    .split(" ")
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .filter(
+      (item) => !["the", "republic", "state", "states", "territory", "territories"].includes(item)
+    );
+}
+
+function countriesMatch(countryA, countryB) {
+  const a = toCanonicalCountryName(countryA);
+  const b = toCanonicalCountryName(countryB);
+  if (!a || !b) {
+    return false;
+  }
+
+  if (a === b) {
+    return true;
+  }
+
+  if (a.includes(b) || b.includes(a)) {
+    return true;
+  }
+
+  const keywordsA = countryKeywords(countryA);
+  const keywordsB = countryKeywords(countryB);
+  if (!keywordsA.length || !keywordsB.length) {
+    return false;
+  }
+
+  return keywordsA.some((keyword) => keywordsB.includes(keyword));
 }
 
 function isActiveRow(value) {
@@ -1010,29 +1212,81 @@ function renderCountries(countries, detectedCountry) {
     return;
   }
 
-  const normalizedCountry = normalizeCountryName(detectedCountry);
-  if (!normalizedCountry) {
-    renderCountryGrid(countryPrimaryGridEl, countries);
+  const primary = detectedCountry
+    ? countries.filter((entry) => countriesMatch(entry.country, detectedCountry))
+    : [];
+
+  // Always keep primary area reserved for the detected country only.
+  if (primary.length) {
+    const remaining = countries.filter(
+      (entry) => !countriesMatch(entry.country, detectedCountry)
+    );
+
+    renderCountryGrid(countryPrimaryGridEl, primary);
+
+    if (countryMoreEl && countryAllGridEl && remaining.length) {
+      renderCountryGrid(countryAllGridEl, remaining);
+      countryMoreEl.hidden = false;
+    }
     return;
   }
 
-  const primary = countries.filter(
-    (entry) => normalizeCountryName(entry.country) === normalizedCountry
-  );
-  const remaining = countries.filter(
-    (entry) => normalizeCountryName(entry.country) !== normalizedCountry
+  renderEmptyMessage(
+    countryPrimaryGridEl,
+    "We could not match your country yet. Open View all countries to find your registration details."
   );
 
-  if (!primary.length) {
-    renderCountryGrid(countryPrimaryGridEl, countries);
-    return;
-  }
-
-  renderCountryGrid(countryPrimaryGridEl, primary);
-
-  if (countryMoreEl && countryAllGridEl && remaining.length) {
-    renderCountryGrid(countryAllGridEl, remaining);
+  if (countryMoreEl && countryAllGridEl) {
+    renderCountryGrid(countryAllGridEl, countries);
     countryMoreEl.hidden = false;
+  }
+}
+
+function renderFeaturedEvents(entries) {
+  if (!featuredEventsSectionEl || !featuredEventsGridEl) {
+    return;
+  }
+
+  featuredEventsGridEl.innerHTML = "";
+  featuredEventsSectionEl.hidden = false;
+
+  if (!entries.length) {
+    renderEmptyMessage(featuredEventsGridEl, "Featured events will be announced soon.");
+    return;
+  }
+
+  for (const entry of entries) {
+    const card = document.createElement("article");
+    card.className = "featured-event-card";
+
+    if (entry.imageUrl) {
+      const image = document.createElement("img");
+      image.className = "featured-event-image";
+      image.src = entry.imageUrl;
+      image.alt = entry.title ? `${entry.title} event image` : "Featured event image";
+      image.loading = "lazy";
+      card.appendChild(image);
+    }
+
+    const body = document.createElement("div");
+    body.className = "featured-event-body";
+
+    if (entry.title) {
+      const title = document.createElement("h3");
+      title.className = "featured-event-title";
+      title.textContent = entry.title;
+      body.appendChild(title);
+    }
+
+    if (entry.subText) {
+      const subText = document.createElement("p");
+      subText.className = "featured-event-subtext";
+      subText.textContent = entry.subText;
+      body.appendChild(subText);
+    }
+
+    card.appendChild(body);
+    featuredEventsGridEl.appendChild(card);
   }
 }
 
@@ -1120,15 +1374,10 @@ function renderTestimonials(entries) {
     const copy = document.createElement("div");
     copy.className = "testimonial-copy";
 
-    const headline = document.createElement("h3");
-    headline.textContent = entry.mainText;
-
-    const sub = document.createElement("p");
-    sub.textContent = entry.subText || "";
-
-    copy.appendChild(headline);
-    if (entry.subText) {
-      copy.appendChild(sub);
+    if (entry.title) {
+      const headline = document.createElement("h3");
+      headline.textContent = entry.title;
+      copy.appendChild(headline);
     }
 
     card.appendChild(media);
@@ -1152,53 +1401,60 @@ function renderPartners(entries) {
     return;
   }
 
-  for (const entry of entries) {
-    const card = document.createElement("article");
-    card.className = "partner-card";
-    card.setAttribute("aria-label", entry.name);
-
-    const logoPicture = createPartnerLogoPicture(entry);
-    logoPicture.classList.add("partner-logo");
-
-    card.appendChild(logoPicture);
-    partnersGridEl.appendChild(card);
+  const minVisibleCards = 6;
+  const repeatedEntries = [];
+  const repeatRounds = Math.max(1, Math.ceil(minVisibleCards / entries.length));
+  for (let i = 0; i < repeatRounds; i += 1) {
+    repeatedEntries.push(...entries);
   }
-}
 
-function createPartnerLogoPicture(entry) {
-  const picture = document.createElement("picture");
-  const source = document.createElement("source");
-  source.media = "(max-width: 720px)";
-  source.srcset = entry.mobileLogo || entry.desktopLogo || "";
+  const loopEntries = [...repeatedEntries, ...repeatedEntries];
+  const track = document.createElement("div");
+  track.className = "partners-marquee-track";
 
-  const image = document.createElement("img");
-  image.src = entry.desktopLogo || entry.mobileLogo || "";
-  image.alt = `${entry.name} logo`;
-  image.loading = "lazy";
+  for (const entry of loopEntries) {
+    const wrapper = entry.websiteUrl ? document.createElement("a") : document.createElement("div");
+    wrapper.className = "partner-marquee-item";
 
-  picture.appendChild(source);
-  picture.appendChild(image);
-  return picture;
+    if (entry.websiteUrl) {
+      wrapper.href = entry.websiteUrl;
+      wrapper.target = "_blank";
+      wrapper.rel = "noopener";
+      wrapper.setAttribute("aria-label", `${entry.name} website`);
+    }
+
+    const image = document.createElement("img");
+    image.className = "partner-marquee-logo";
+    image.src = entry.logoUrl;
+    image.alt = `${entry.name} logo`;
+    image.loading = "lazy";
+
+    wrapper.appendChild(image);
+    track.appendChild(wrapper);
+  }
+
+  partnersGridEl.appendChild(track);
 }
 
 function createTestimonialMedia(entry) {
-  const isMobile = window.matchMedia("(max-width: 720px)").matches;
-  const selectedUrl = isMobile ? entry.mobileUrl || entry.desktopUrl : entry.desktopUrl || entry.mobileUrl;
-  
+  const selectedUrl = entry.videoUrl || "";
+
   if (isYouTubeUrl(selectedUrl)) {
     const iframe = document.createElement("iframe");
     iframe.src = convertToYouTubeEmbed(selectedUrl);
     iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
     iframe.allowFullscreen = true;
     iframe.loading = "lazy";
+    iframe.title = entry.title || "Digital nugget video";
     return iframe;
   }
 
-  const image = document.createElement("img");
-  image.src = convertDriveUrl(selectedUrl);
-  image.alt = "Testimonial media";
-  image.loading = "lazy";
-  return image;
+  const video = document.createElement("video");
+  video.src = selectedUrl;
+  video.controls = true;
+  video.preload = "metadata";
+  video.title = entry.title || "Digital nugget video";
+  return video;
 }
 
 function isYouTubeUrl(url) {
@@ -1212,18 +1468,20 @@ function convertToYouTubeEmbed(url) {
   if (!url) {
     return "";
   }
-  
+
   let videoId = "";
-  
+
   if (url.includes("youtu.be/")) {
     videoId = url.split("youtu.be/")[1].split(/[?&]/)[0];
+  } else if (url.includes("youtube.com/shorts/")) {
+    videoId = url.split("youtube.com/shorts/")[1].split(/[?&]/)[0];
   } else if (url.includes("youtube.com/watch")) {
     const params = new URLSearchParams(url.split("?")[1] || "");
     videoId = params.get("v") || "";
   } else if (url.includes("youtube.com/embed/")) {
     return url;
   }
-  
+
   return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
 }
 
@@ -1246,7 +1504,7 @@ function setupTestimonialsCarousel() {
     return Number.parseFloat(gapValue) || 0;
   };
 
-  const getItemsPerView = () => (window.matchMedia("(min-width: 900px)").matches ? 2 : 1);
+  const getItemsPerView = () => 1;
 
   const getPageSpan = () => {
     const cardWidth = cards[0].getBoundingClientRect().width;
@@ -1429,15 +1687,126 @@ function setupVenueModal() {
   });
 }
 
+function setupImpactCounters() {
+  if (!impactSectionEl || !impactValueEls.length) {
+    return;
+  }
+
+  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const parsedValues = impactValueEls
+    .map((el) => {
+      const originalText = el.textContent ? el.textContent.trim() : "";
+      const match = originalText.match(/^([\d,.]+)(.*)$/);
+      if (!match) {
+        return null;
+      }
+
+      const numericText = match[1].replace(/,/g, "");
+      const target = Number.parseFloat(numericText);
+      if (!Number.isFinite(target)) {
+        return null;
+      }
+
+      const decimalPart = numericText.split(".")[1] || "";
+      return {
+        el,
+        target,
+        suffix: match[2] || "",
+        decimals: decimalPart.length,
+      };
+    })
+    .filter(Boolean);
+
+  if (!parsedValues.length) {
+    return;
+  }
+
+  const renderValue = (value, decimals) => {
+    if (decimals > 0) {
+      return value.toLocaleString(undefined, {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals,
+      });
+    }
+    return Math.round(value).toLocaleString();
+  };
+
+  const runAnimation = () => {
+    const duration = 2200;
+    const start = performance.now();
+
+    for (const item of parsedValues) {
+      item.el.classList.add("is-counting");
+    }
+
+    const tick = (now) => {
+      const progress = Math.min((now - start) / duration, 1);
+      const eased = 1 - (1 - progress) ** 3;
+
+      for (const item of parsedValues) {
+        const current = item.target * eased;
+        item.el.textContent = `${renderValue(current, item.decimals)}${item.suffix}`;
+      }
+
+      if (progress < 1) {
+        window.requestAnimationFrame(tick);
+        return;
+      }
+
+      for (const item of parsedValues) {
+        item.el.classList.remove("is-counting");
+      }
+    };
+
+    window.requestAnimationFrame(tick);
+  };
+
+  const showFinalValues = () => {
+    for (const item of parsedValues) {
+      item.el.textContent = `${renderValue(item.target, item.decimals)}${item.suffix}`;
+    }
+  };
+
+  if (prefersReducedMotion) {
+    showFinalValues();
+    return;
+  }
+
+  for (const item of parsedValues) {
+    item.el.textContent = `${renderValue(0, item.decimals)}${item.suffix}`;
+  }
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      const hasVisible = entries.some((entry) => entry.isIntersecting);
+      if (!hasVisible) {
+        return;
+      }
+
+      runAnimation();
+      observer.disconnect();
+    },
+    {
+      threshold: 0.5,
+      rootMargin: "0px",
+    }
+  );
+
+  observer.observe(impactSectionEl);
+}
+
 async function init() {
   console.log("Initializing...");
   applyRegisterLinks();
+  setupMobileNav();
   setupNewsletterSubscribe();
+  setupImpactCounters();
   const heroes = await fetchHeroContent();
   console.log("Fetched heroes:", heroes);
   startHeroRotation(heroes);
 
-  const [countries, venues, countryPics, testimonials, partners] = await Promise.all([
+  const [featuredEvents, countries, venues, countryPics, testimonials, partners] = await Promise.all([
+    fetchFeaturedEventsContent(),
     fetchCountriesContent(),
     fetchVenuesContent(),
     fetchCountryPicsContent(),
@@ -1447,6 +1816,7 @@ async function init() {
   venueEntries = venues;
   setupVenueModal();
   const detectedCountry = await detectVisitorCountry();
+  renderFeaturedEvents(featuredEvents);
   renderCountries(countries, detectedCountry);
   renderCountryPics(countryPics, detectedCountry);
   renderTestimonials(testimonials);

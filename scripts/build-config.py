@@ -87,12 +87,16 @@ def main() -> None:
     api_key = env.get("SHEET_API_KEY", "")
     cards_tab = env.get("CARDS_TAB", "Cards")
     hero_tab = env.get("HERO_TAB", "Hero")
+    featured_events_tab = env.get("FEATURED_EVENTS_TAB", "FeaturedEvents")
+    previous_events_tab = env.get("PREVIOUS_EVENTS_TAB", "PreviousEvents")
+    upcoming_events_tab = env.get("UPCOMING_EVENTS_TAB", "UpcomingEvents")
     countries_tab = env.get("COUNTRIES_TAB", "Countries")
     venues_tab = env.get("VENUES_TAB", "Venues")
     country_pics_tab = env.get("COUNTRY_PICS_TAB", "Country Pics")
     testimonials_tab = env.get("TESTIMONIALS_TAB", "Testimonials")
     partners_tab = env.get("PARTNERS_TAB", "Partners")
     newsletter_tab = env.get("NEWSLETTER_TAB", "Newsletter")
+    collaborate_tab = env.get("COLLABORATE_TAB", "Collaborate")
     hero_desktop_col = env.get("HERO_DESKTOP_COL", "2")
     hero_mobile_col = env.get("HERO_MOBILE_COL", "3")
     hero_active_col = env.get("HERO_ACTIVE_COL", "4")
@@ -103,6 +107,7 @@ def main() -> None:
         "https://docs.google.com/forms/d/e/1FAIpQLSectYAdjAU05va9eshykh6h8LgGKeG7d-Hm190bpSbz3l7EJQ/viewform",
     )
     newsletter_endpoint = env.get("NEWSLETTER_ENDPOINT", "")
+    collaborate_endpoint = env.get("COLLABORATE_ENDPOINT", "")
     newsletter_form_url = env.get("NEWSLETTER_FORM_URL", "")
     newsletter_form_first_name_field = env.get("NEWSLETTER_FORM_FIRST_NAME_FIELD", "")
     newsletter_form_last_name_field = env.get("NEWSLETTER_FORM_LAST_NAME_FIELD", "")
@@ -118,12 +123,16 @@ def main() -> None:
         f"  apiKey: \"{api_key}\",\n"
         f"  cardsTab: \"{cards_tab}\",\n"
         f"  heroTab: \"{hero_tab}\",\n"
+        f"  featuredEventsTab: \"{featured_events_tab}\",\n"
+        f"  previousEventsTab: \"{previous_events_tab}\",\n"
+        f"  upcomingEventsTab: \"{upcoming_events_tab}\",\n"
         f"  countriesTab: \"{countries_tab}\",\n"
         f"  venuesTab: \"{venues_tab}\",\n"
         f"  countryPicsTab: \"{country_pics_tab}\",\n"
         f"  testimonialsTab: \"{testimonials_tab}\",\n"
         f"  partnersTab: \"{partners_tab}\",\n"
         f"  newsletterTab: \"{newsletter_tab}\",\n"
+        f"  collaborateTab: \"{collaborate_tab}\",\n"
         f"  heroDesktopCol: \"{hero_desktop_col}\",\n"
         f"  heroMobileCol: \"{hero_mobile_col}\",\n"
         f"  heroActiveCol: \"{hero_active_col}\",\n"
@@ -131,6 +140,7 @@ def main() -> None:
         f"  geoEndpoint: \"{geo_endpoint}\",\n"
         f"  registerUrl: \"{register_url}\",\n"
         f"  newsletterEndpoint: \"{newsletter_endpoint}\",\n"
+        f"  collaborateEndpoint: \"{collaborate_endpoint}\",\n"
         f"  newsletterFormUrl: \"{newsletter_form_url}\",\n"
         f"  newsletterFormFirstNameField: \"{newsletter_form_first_name_field}\",\n"
         f"  newsletterFormLastNameField: \"{newsletter_form_last_name_field}\",\n"

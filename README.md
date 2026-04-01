@@ -31,14 +31,24 @@ Hard refresh (Cmd+Shift+R) to see config changes.
 
 **Partners** — sponsor logos
 - Column A: Name
-- Column B: Desktop logo URL
-- Column C: Mobile logo URL
+- Column B: Logo URL
+- Column C: Website URL
 - Column D: Active (Y/N)
 
 **Countries** — registration by country
 - Column A: Country name
 - Column B: City count
 - Column C: Date
+
+**PreviousEvents** — past event cards
+- Column A: Image URL
+- Column B: Title
+- Column C: Location
+
+**UpcomingEvents** — upcoming event list
+- Column A: Title
+- Column B: Date
+- Column C: Location
 
 **Venues** — event venue details
 - Column A: Country
@@ -62,16 +72,27 @@ Hard refresh (Cmd+Shift+R) to see config changes.
 - Column A: Email
 - Column B: Submitted timestamp (optional, if your endpoint writes it)
 
+**Collaborate** — partner inquiries
+- Column A: First Name
+- Column B: Last Name
+- Column C: Company/Institution
+- Column D: Email
+- Column E: Subject
+- Column F: Message
+- Column G: Submitted timestamp
+
 ## Newsletter Subscribe Setup
 
 The `Subscribe to Newsletter` button asks for an email and sends it using one of the modes below.
 
 1. In `.env`, keep:
    - `NEWSLETTER_TAB=Newsletter`
+   - `COLLABORATE_TAB=Collaborate`
 2. Choose one sending mode:
 
    **Option A — Apps Script / webhook endpoint**
    - `NEWSLETTER_ENDPOINT=<your-webhook-or-apps-script-url>`
+   - `COLLABORATE_ENDPOINT=<your-webhook-or-apps-script-url>`
 
    **Option B — Google Form direct submit**
    - `NEWSLETTER_FORM_URL=https://docs.google.com/forms/d/e/<FORM_ID>/formResponse`
