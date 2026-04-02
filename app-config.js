@@ -22,7 +22,7 @@ window.APP_CONFIG = {
   heroRotationMs: "7000",
   geoEndpoint: "https://ipapi.co/json/",
   registerUrl: "https://docs.google.com/forms/d/e/1FAIpQLSectYAdjAU05va9eshykh6h8LgGKeG7d-Hm190bpSbz3l7EJQ/viewform",
-  newsletterEndpoint: "https://script.google.com/macros/s/AKfycbwezSxR1LUnnRTjPIeXiN8yMZG7F5ArAdzpwW-cS5ixOOsGAlcvqPiqWp57AT2ZKXBYsw/exec",
+  newsletterEndpoint: "https://script.google.com/macros/s/AKfycbzctuxuhi2ocO-rwocI6Ph5fFSqHv5CJ33IZdWXJ3fFQ7c1y-mNofQ_SjX2rnK--E-4uQ/exec",
   collaborateEndpoint: "",
   newsletterFormUrl: "",
   newsletterFormFirstNameField: "",
