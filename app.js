@@ -34,7 +34,7 @@ const GEO_CONFIG = {
 };
 const REGISTER_URL =
   runtimeConfig.registerUrl ||
-  "https://docs.google.com/forms/d/e/1FAIpQLSectYAdjAU05va9eshykh6h8LgGKeG7d-Hm190bpSbz3l7EJQ/viewform";
+  "https://form.typeform.com/to/kkuhy7ob";
 const NEWSLETTER_ENDPOINT = runtimeConfig.newsletterEndpoint || "";
 const NEWSLETTER_FORM_URL = runtimeConfig.newsletterFormUrl || "";
 const NEWSLETTER_FORM_FIRST_NAME_FIELD = runtimeConfig.newsletterFormFirstNameField || "";
@@ -1147,24 +1147,19 @@ function convertDriveUrl(url) {
 
 function renderHeroImage(hero) {
   if (!heroVisualEl) {
-    console.log("hero-visual element not found");
     return;
   }
 
   if (!hero || (!hero.desktop && !hero.mobile)) {
-    console.log("No hero data provided");
     heroVisualEl.classList.add("is-hidden");
     return;
   }
 
-  console.log("Rendering hero:", hero);
   heroVisualEl.classList.remove("is-hidden");
   const isMobile = window.matchMedia("(max-width: 720px)").matches;
   const desktop = hero.desktop || hero.mobile;
   const mobile = hero.mobile || hero.desktop;
   const selected = isMobile ? mobile : desktop;
-
-  console.log("Selected image URL:", selected);
 
   if (heroSourceEl) {
     heroSourceEl.srcset = mobile || desktop || "";
@@ -1172,7 +1167,6 @@ function renderHeroImage(hero) {
 
   if (heroImageEl) {
     heroImageEl.src = selected;
-    console.log("Set img src to:", selected);
   }
 }
 
@@ -1184,11 +1178,9 @@ function startHeroRotation(heroes) {
 
   let index = 0;
   renderHeroImage(heroes[index]);
-  console.log("Starting rotation with", heroes.length, "images");
 
   window.setInterval(() => {
     index = (index + 1) % heroes.length;
-    console.log("Rotating to index:", index, "Image:", heroes[index]);
     renderHeroImage(heroes[index]);
   }, SHEET_CONFIG.heroRotationMs);
 }
@@ -1796,13 +1788,11 @@ function setupImpactCounters() {
 }
 
 async function init() {
-  console.log("Initializing...");
   applyRegisterLinks();
   setupMobileNav();
   setupNewsletterSubscribe();
   setupImpactCounters();
   const heroes = await fetchHeroContent();
-  console.log("Fetched heroes:", heroes);
   startHeroRotation(heroes);
 
   const [featuredEvents, countries, venues, countryPics, testimonials, partners] = await Promise.all([

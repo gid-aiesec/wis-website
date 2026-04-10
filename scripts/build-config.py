@@ -104,7 +104,7 @@ def main() -> None:
     geo_endpoint = env.get("GEO_ENDPOINT", "https://ipapi.co/json/")
     register_url = env.get(
         "REGISTER_URL",
-        "https://docs.google.com/forms/d/e/1FAIpQLSectYAdjAU05va9eshykh6h8LgGKeG7d-Hm190bpSbz3l7EJQ/viewform",
+        "https://form.typeform.com/to/kkuhy7ob",
     )
     newsletter_endpoint = env.get("NEWSLETTER_ENDPOINT", "")
     collaborate_endpoint = env.get("COLLABORATE_ENDPOINT", "")

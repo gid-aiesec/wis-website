@@ -135,8 +135,9 @@ function parsePreviousEvents(rows) {
       imageUrl: convertDriveUrl((row[0] || "").trim()),
       title: (row[1] || "").trim(),
       location: (row[2] || "").trim(),
+      folderUrl: (row[3] || "").trim(),
     }))
-    .filter((item) => item.imageUrl || item.title || item.location);
+    .filter((item) => item.imageUrl || item.title || item.location || item.folderUrl);
 }
 
 function convertDriveUrl(url) {
@@ -214,6 +215,21 @@ function renderPreviousEvents(entries) {
     location.className = "event-card-meta";
     location.textContent = entry.location || "Location TBA";
     body.appendChild(location);
+
+    if (entry.folderUrl) {
+      const actions = document.createElement("div");
+      actions.className = "event-card-actions";
+
+      const folderLink = document.createElement("a");
+      folderLink.className = "cta-button event-card-folder-link";
+      folderLink.href = entry.folderUrl;
+      folderLink.target = "_blank";
+      folderLink.rel = "noopener";
+      folderLink.textContent = "More images";
+
+      actions.appendChild(folderLink);
+      body.appendChild(actions);
+    }
 
     card.appendChild(body);
     previousEventsGridEl.appendChild(card);
