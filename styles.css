@@ -1535,6 +1535,8 @@ select.newsletter-input {
   }
 
   .impact-grid {
+    width: 100%;
+    max-width: none;
     grid-template-columns: 1fr;
   }
 
