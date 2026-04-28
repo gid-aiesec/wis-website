@@ -28,6 +28,7 @@ jobs:
         run: |
           aws s3 sync . s3://${{ secrets.S3_BUCKET_NAME }} \
             --delete \
+            --exclude ".git/*" \
             --exclude ".github/*" \
             --exclude ".vscode/*" \
             --exclude ".well-known/*" \
